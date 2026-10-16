@@ -19,6 +19,16 @@ public class GameManager : MonoBehaviour
 
     [Header("UI")]
     public GameUI gameUI;
+
+    [Header("演出")]
+    public SuccessEffectUI successEffectUI;
+
+    [Header("失敗演出")]
+    public FailureEffectUI failureEffectUI;
+
+    // 失敗演出中はジャンプ操作を禁止する
+    public bool ResultEffectPlaying =>
+        failureEffectUI != null && failureEffectUI.IsPlaying;
     public bool GameEnded { get; private set; }
 
     void Awake()
@@ -85,6 +95,15 @@ public class GameManager : MonoBehaviour
             playerData.money += moneyReward;
             playerData.subscribers += subscriberReward;
 
+            // 成功演出を再生
+            if (successEffectUI != null)
+            {
+                successEffectUI.Play(
+                    moneyReward,
+                    subscriberReward
+                );
+            }
+
             // 成功したので翌日へ進む
             playerData.day++;
 
@@ -106,20 +125,41 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // 失敗したら登録者を減らす
+            // 減少する登録者数を記録
+            long subscriberLoss = Math.Min(
+                playerData.subscribers,
+                config.baseSubscriberLoss
+            );
+
+            // 登録者を減らす
             playerData.subscribers = Math.Max(
                 0L,
                 playerData.subscribers - config.baseSubscriberLoss
             );
 
             Debug.Log(
-                $"ジャンプ失敗！ 登録者数：{playerData.subscribers}人");
+                $"ジャンプ失敗！ 登録者数：{playerData.subscribers}人"
+            );
 
             // 登録者が0人になったらゲームオーバー
             if (playerData.subscribers <= 0)
             {
                 GameEnded = true;
                 Debug.Log($"ゲームオーバー：{playerData.day}日目");
+            }
+
+            // 失敗演出を再生
+            if (failureEffectUI != null)
+            {
+                failureEffectUI.Play(
+                    subscriberLoss,
+                    OnFailureEffectFinished
+                );
+            }
+            else if (!GameEnded)
+            {
+                // 演出が未設定の場合はすぐ翌日へ
+                playerData.day++;
             }
         }
 
@@ -157,5 +197,18 @@ public class GameManager : MonoBehaviour
         {
             gameUI.RefreshUI();
         }
+    }
+
+    private void OnFailureEffectFinished()
+    {
+        // ゲームオーバーなら翌日に進まない
+        if (!GameEnded)
+        {
+            playerData.day++;
+
+            Debug.Log($"{playerData.day}日目になりました！");
+        }
+
+        RefreshUI();
     }
 }

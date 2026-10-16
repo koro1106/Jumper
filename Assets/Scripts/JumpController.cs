@@ -71,6 +71,8 @@ public class JumpController : MonoBehaviour
     // ドラッグ線を描画する
     private LineRenderer dragLine;
 
+    [Header("UI設定")]
+    [SerializeField] private GameObject shopUI;
     /// <summary>
     /// コンポーネントを取得する。
     /// </summary>
@@ -119,71 +121,67 @@ public class JumpController : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        // ゲーム管理クラスがなければ操作しない
         if (GameManager.Instance == null)
             return;
 
-        // ゲーム終了後は操作しない
         if (GameManager.Instance.GameEnded)
             return;
 
-        // カメラがなければ処理しない
+        // ショップが開いている間は操作禁止
+        if (shopUI != null && shopUI.activeInHierarchy)
+        {
+            if (isDragging)
+            {
+                isDragging = false;
+
+                if (dragLine != null)
+                    dragLine.enabled = false;
+            }
+
+            return;
+        }
+
         if (Camera.main == null)
             return;
 
-        // 着地前やジャンプ後は新しいドラッグを開始しない
-        if (!hasLaunched &&!isDragging &&isGrounded &&Input.GetMouseButtonDown(0))
+        // ドラッグ開始
+        if (!hasLaunched && !isDragging && isGrounded &&
+            Input.GetMouseButtonDown(0))
         {
-            // UI上のクリックならジャンプ操作を開始しない
             if (EventSystem.current != null &&
                 EventSystem.current.IsPointerOverGameObject())
-            {
                 return;
-            }
 
-            // ドラッグ開始位置をプレイヤーの現在位置にする
             startPosition = rb.position;
-
-            // マウス位置を取得する
             dragPosition = GetMouseWorldPosition();
 
-            // ドラッグを開始する
             isDragging = true;
-
-            // 線を表示する
             dragLine.enabled = true;
 
-            // 開始時点の線を更新する
             UpdateDragLine();
         }
 
-        // 左クリックを押している間、方向と距離を更新する
+        // ドラッグ中
         if (isDragging && Input.GetMouseButton(0))
         {
-            // マウスの現在位置を取得する
             dragPosition = GetMouseWorldPosition();
-
-            // 線の長さ・向き・角度をリアルタイムに変更する
             UpdateDragLine();
         }
 
-        // 左クリックを離したらジャンプする
+        // マウスを離したらジャンプ
         if (isDragging && Input.GetMouseButtonUp(0))
         {
-            // 最後のマウス位置を取得する
-            dragPosition = GetMouseWorldPosition();
+            Debug.Log("マウスを離した");
 
-            // ドラッグ線を最後に更新する
+            dragPosition = GetMouseWorldPosition();
             UpdateDragLine();
 
-            // ドラッグ状態を解除する
             isDragging = false;
-
-            // 線を非表示にする
             dragLine.enabled = false;
 
-            // ジャンプを実行する
             Launch();
+
+            Debug.Log("Launch実行");
         }
     }
 
@@ -335,18 +333,52 @@ public class JumpController : MonoBehaviour
         if (!hasLaunched)
             return;
 
-        // 衝突相手が地面レイヤーか確認する
+        // 自転車にぶつかったら失敗
+        if (collision.gameObject.CompareTag("Bicycle"))
+        {
+            hasLaunched = false;
+            isGrounded = true;
+
+            // 失敗処理を実行
+            FinishJumpAsFailure();
+            return;
+        }
+
+        // 地面との衝突判定
         bool isGroundLayer =
             (groundLayer.value &
             (1 << collision.gameObject.layer)) != 0;
 
-        // 地面に着地したらジャンプ結果を処理する
         if (isGroundLayer)
         {
             FinishJump();
         }
     }
 
+    private void FinishJumpAsFailure()
+    {
+        // 通常時の画像に戻す
+        if (spriteRenderer != null && normalSprite != null)
+        {
+            spriteRenderer.sprite = normalSprite;
+        }
+
+        // ゲーム管理クラスがなければ終了
+        if (GameManager.Instance == null ||
+            GameManager.Instance.GameEnded)
+        {
+            return;
+        }
+
+        // 失敗として処理する
+        GameManager.Instance.OnJumpResult(false);
+
+        // ゲーム終了前ならプレイヤーを戻す
+        if (!GameManager.Instance.GameEnded)
+        {
+            ResetPlayer();
+        }
+    }
     /// <summary>
     /// 着地時に成功・失敗を判定する。
     /// </summary>

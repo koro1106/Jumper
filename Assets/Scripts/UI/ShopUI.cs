@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-
+using System.Collections;
 public class ShopUI : MonoBehaviour
 {
     [Header("ショップ画面")]
@@ -20,10 +20,22 @@ public class ShopUI : MonoBehaviour
     [Header("自転車管理")]
     [SerializeField] private BicycleManager bicycleManager;
 
+    [Header("ショップアニメーション")]
+    [SerializeField] private float animationDuration = 0.2f;
+    [SerializeField] private float startScale = 0.8f;
+
+    private RectTransform shopRectTransform;
+    private Coroutine openAnimation;
+
     private void Start()
     {
         if (shopPanel != null)
+        {
+            shopRectTransform =
+                shopPanel.GetComponent<RectTransform>();
+
             shopPanel.SetActive(false);
+        }
 
         if (shopOpenButton != null)
             shopOpenButton.onClick.AddListener(OpenShop);
@@ -42,8 +54,22 @@ public class ShopUI : MonoBehaviour
         if (shopPanel == null)
             return;
 
+        if (openAnimation != null)
+            StopCoroutine(openAnimation);
+
         shopPanel.SetActive(true);
         RefreshShopUI();
+
+        if (shopRectTransform == null)
+            shopRectTransform =
+                shopPanel.GetComponent<RectTransform>();
+
+        if (shopRectTransform != null)
+        {
+            openAnimation = StartCoroutine(
+                PlayOpenAnimation()
+            );
+        }
     }
 
     public void CloseShop()
@@ -132,5 +158,37 @@ public class ShopUI : MonoBehaviour
 
         if (closeShopButton != null)
             closeShopButton.onClick.RemoveListener(CloseShop);
+    }
+
+    private IEnumerator PlayOpenAnimation()
+    {
+        Vector3 start = Vector3.one * startScale;
+        Vector3 end = Vector3.one;
+
+        shopRectTransform.localScale = start;
+
+        float elapsed = 0f;
+
+        while (elapsed < animationDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+
+            float t = Mathf.Clamp01(
+                elapsed / animationDuration
+            );
+
+            // Ease Out Back：最後に少し弾む動き
+            float easedT = 1f + 2.70158f *
+                Mathf.Pow(t - 1f, 3f) +
+                1.70158f * Mathf.Pow(t - 1f, 2f);
+
+            shopRectTransform.localScale =
+                Vector3.LerpUnclamped(start, end, easedT);
+
+            yield return null;
+        }
+
+        shopRectTransform.localScale = end;
+        openAnimation = null;
     }
 }
