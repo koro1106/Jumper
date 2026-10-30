@@ -46,6 +46,15 @@ public class SkillNodeUI : MonoBehaviour
 
         if (iconImage != null && skill != null) iconImage.sprite = skill.icon;
 
+        // Button が未設定なら、このオブジェクト自身のButtonを探す
+        if (button == null) button = GetComponent<Button>();
+        if (button == null)
+        {
+            Debug.LogError($"[SkillNodeUI] {name} に Button がありません。", this);
+            return;
+        }
+        if (skill == null) Debug.LogWarning($"[SkillNodeUI] {name} の Skill が未設定です。", this);
+
         // 未指定ならボタン自身のImageを使う
         if (buttonImage == null) buttonImage = button.targetGraphic as Image;
 

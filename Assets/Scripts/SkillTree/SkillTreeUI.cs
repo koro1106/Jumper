@@ -48,6 +48,10 @@ public class SkillTreeUI : MonoBehaviour
     [SerializeField] private Button buyButton;
     [SerializeField] private TMP_Text buyButtonLabel;
 
+    [Header("デバッグ")]
+    [Tooltip("ONにすると、スキル選択時に所持金・コスト・状態をConsoleに出す")]
+    [SerializeField] private bool debugLog = false;
+
     // ========================================
     // 内部状態
     // ========================================
@@ -70,8 +74,14 @@ public class SkillTreeUI : MonoBehaviour
     {
         if (nodes == null || nodes.Length == 0)
         {
-            nodes = GetComponentsInChildren<SkillNodeUI>(true);
+            // パネルの中にあるノードを集める（非表示のものも含む）
+            Transform root = panelRoot != null ? panelRoot.transform : transform;
+            nodes = root.GetComponentsInChildren<SkillNodeUI>(true);
         }
+
+        if (nodes.Length == 0) Debug.LogWarning("[SkillTreeUI] SkillNodeUI が1つも見つかりません。ノードがパネルの子になっているか確認してください。", this);
+        if (skillManager == null) Debug.LogWarning("[SkillTreeUI] Skill Manager が未設定です。", this);
+        if (panelRoot == null) Debug.LogError("[SkillTreeUI] Panel Root が未設定です。", this);
 
         foreach (SkillNodeUI node in nodes)
         {
@@ -116,11 +126,7 @@ public class SkillTreeUI : MonoBehaviour
             linesBuilt = true;
         }
 
-        if (selectedNode == null && nodes.Length > 0)
-        {
-            OnNodeSelected(nodes[0]);
-        }
-
+        // 最初は何も選択しない（スキルを押すまで詳細パネルは「スキルを選択してください」）
         RefreshAll();
     }
 
@@ -239,6 +245,13 @@ public class SkillTreeUI : MonoBehaviour
 
         // 購入ボタン
         SkillBuyState state = skillManager.GetBuyState(skill);
+
+        if (debugLog)
+        {
+            long money = skillManager.playerData != null ? skillManager.playerData.money : -1;
+            Debug.Log($"[SkillTreeUI] {skill.skillName}: 所持金={money}, コスト={skillManager.GetNextCost(skill)}, 状態={state}", this);
+        }
+
         buyButton.interactable = (state == SkillBuyState.Ok);
         buyButtonLabel.text = GetBuyLabel(state);
     }

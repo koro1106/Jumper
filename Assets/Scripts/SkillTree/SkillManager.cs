@@ -9,7 +9,8 @@ public enum SkillBuyState
     Ok,
     Maxed,           // 最大レベル
     Locked,          // 前提スキルが未習得
-    NotEnoughMoney   // お金が足りない
+    NotEnoughMoney,  // お金が足りない
+    NoPlayerData     // playerData が未設定
 }
 
 /// <summary>
@@ -18,7 +19,17 @@ public enum SkillBuyState
 public class SkillManager : MonoBehaviour
 {
     public SkillTreeData skillTree;
-    public PlayerRuntimeData playerData;
+
+    // PlayerRuntimeData は ScriptableObject ではなく普通のクラスなので、
+    // Inspectorに出すと「別のコピー」ができてしまう。
+    // そのため保存対象から外し、ゲーム側から SetPlayerData で渡してもらう。
+    [System.NonSerialized] public PlayerRuntimeData playerData;
+
+    // ゲーム側が使っている PlayerRuntimeData をそのまま渡す（コピーではなく同じ実体）
+    public void SetPlayerData(PlayerRuntimeData data)
+    {
+        playerData = data;
+    }
 
     // スキルを購入したときに通知（UIの更新用）
     public event Action<SkillData> OnSkillBought;
@@ -63,6 +74,7 @@ public class SkillManager : MonoBehaviour
 
     public SkillBuyState GetBuyState(SkillData skill)
     {
+        if (playerData == null) return SkillBuyState.NoPlayerData;
         if (!IsUnlocked(skill)) return SkillBuyState.Locked;
         if (IsMaxed(skill)) return SkillBuyState.Maxed;
         if (playerData.money < GetNextCost(skill)) return SkillBuyState.NotEnoughMoney;

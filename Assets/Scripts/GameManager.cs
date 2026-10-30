@@ -41,6 +41,7 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         playerData.Initialize(config);
+        skillManager.SetPlayerData(playerData);
     }
 
     /// <summary>

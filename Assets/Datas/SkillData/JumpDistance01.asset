@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f91fc8554a41f34899b070f94ed946d, type: 3}
+  m_Name: JumpDistance01
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  skillId: 2
+  skillName: "\u98DB\u8DDD\u96E2UP"
+  description: "\u98DB\u8DDD\u96E2\u304CUP\u3057\u307E\u3059"
+  icon: {fileID: 0}
+  skillType: 1
+  valuePerLevel: 0.2
+  baseCost: 100
+  costGrowth: 1.6
+  prerequisite: {fileID: 0}
+  maxLevel: 10
