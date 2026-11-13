@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 自転車の配置、購入、台数、購入価格を管理するクラス。
 /// 自転車Prefabを生成し、横一列に並べる。
+/// PERFECT着地の位置（最後の自転車の少し先）も管理する。
 /// </summary>
 public class BicycleManager : MonoBehaviour
 {
@@ -19,6 +20,17 @@ public class BicycleManager : MonoBehaviour
 
     [Tooltip("生成した自転車をまとめる親Transform")]
     public Transform bicycleParent;
+
+    [Header("PERFECT設定")]
+
+    [Tooltip("最後の自転車の中心から、PERFECTの中心までの距離")]
+    public float perfectOffset = 3f;
+
+    [Tooltip("PERFECTの中心から左右に何mまでをPERFECTにするか")]
+    public float perfectRadius = 0.8f;
+
+    [Tooltip("PERFECTの位置を示すマーカー（任意。地面の上に置く）")]
+    public Transform perfectMarker;
 
     // 生成済みの自転車を管理するリスト
     private readonly List<GameObject> bicycles =
@@ -46,6 +58,19 @@ public class BicycleManager : MonoBehaviour
             return bicycles[bicycles.Count - 1]
                 .transform.position.x;
         }
+    }
+
+    /// <summary>
+    /// PERFECTの中心X座標。自転車が増えると右へ動く。
+    /// </summary>
+    public float PerfectX => LastBicycleX + perfectOffset;
+
+    /// <summary>
+    /// 指定したX座標がPERFECTの範囲内かどうかを返す。
+    /// </summary>
+    public bool IsPerfect(float x)
+    {
+        return Mathf.Abs(x - PerfectX) <= perfectRadius;
     }
 
     /// <summary>
@@ -189,12 +214,17 @@ public class BicycleManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 自転車の追加・削除後に必要な更新処理を行う。
-    /// 現時点では配置済みの自転車を移動させない。
-    /// カメラ追従やステージ拡張を追加するときに利用する。
+    /// 自転車の追加後に必要な更新処理を行う。
+    /// 現在はPERFECTマーカーを、最後の自転車の先へ動かす。
+    /// 配置済みの自転車は移動させない。
     /// </summary>
     public void UpdateBicycles()
     {
-        // 現在は追加の更新処理なし
+        if (perfectMarker != null)
+        {
+            Vector3 p = perfectMarker.position;
+            p.x = PerfectX;
+            perfectMarker.position = p;
+        }
     }
 }

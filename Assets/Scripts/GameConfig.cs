@@ -29,4 +29,8 @@ public class GameConfig : ScriptableObject
 
     [Header("ƒAƒ“ƒ`İ’è")]
     public long subscribersPerAnti = 1000;
+
+    [Header("PERFECT")]
+    [Tooltip("PERFECT‚Ì•ñV”{—¦")]
+    public float perfectMultiplier = 2f;
 }

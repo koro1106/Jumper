@@ -61,7 +61,7 @@ public class FailureEffectUI : MonoBehaviour
 
         if (failureText != null)
         {
-            failureText.text = "タイヤに足が絡まってしまった。";
+            failureText.text = "タイヤに足がからまってしまった。";
             failureText.gameObject.SetActive(true);
         }
 

@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f91fc8554a41f34899b070f94ed946d, type: 3}
-  m_Name: JumpPower02
+  m_Name: SubscriberReward
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
-  skillId: 2
-  skillName: "\u30B8\u30E3\u30F3\u30D7\u30D1\u30EF\u30FCUP"
-  description: "\u30B8\u30E3\u30F3\u30D7\u529B\u304CUP\u3057\u307E\u3059"
+  skillId: 3
+  skillName: "\u30D0\u30BA\u308A\u529B"
+  description: "\u5897\u3048\u308B\u767B\u9332\u8005\u304CUP\u3057\u307E\u3059"
   icon: {fileID: 0}
-  skillType: 0
+  skillType: 3
   valuePerLevel: 0.2
   baseCost: 400
   costGrowth: 1.6

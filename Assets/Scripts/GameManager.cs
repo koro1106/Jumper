@@ -26,6 +26,13 @@ public class GameManager : MonoBehaviour
     [Header("¸”s‰‰o")]
     public FailureEffectUI failureEffectUI;
 
+    [Header("’Ç‰Á‰‰o")]
+    public JumpEffects jumpEffects;
+
+    [Header("PERFECT")]
+    [Tooltip("PERFECT’…’n‚Ì‚Æ‚«‚É•ñV‚Ö‚©‚¯‚é”{—¦")]
+    public float perfectMultiplier = 2f;
+
     // ¸”s‰‰o’†‚ÍƒWƒƒƒ“ƒv‘€ì‚ğ‹Ö~‚·‚é
     public bool ResultEffectPlaying =>
         failureEffectUI != null && failureEffectUI.IsPlaying;
@@ -47,8 +54,9 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// ƒWƒƒƒ“ƒv‚ÌŒ‹‰Ê‚É‰‚¶‚Ä•ñVE“o˜^Ò”E“ú”‚ğXV‚·‚éB
     /// ¬Œ÷‚Ì‚İ“ú”‚ğ1“úi‚ß‚éB
+    /// perfect ‚ª true ‚Ì‚Æ‚«‚Í•ñV‚ğ perfectMultiplier ”{‚É‚·‚éB
     /// </summary>
-    public void OnJumpResult(bool success)
+    public void OnJumpResult(bool success, bool perfect = false)
     {
         // ƒQ[ƒ€I—¹Œã‚ÍŒ‹‰Ê‚ğˆ—‚µ‚È‚¢
         if (GameEnded)
@@ -72,6 +80,9 @@ public class GameManager : MonoBehaviour
                 ? skillManager.GetMultiplier(SkillType.SubscriberReward)
                 : 1f;
 
+            // y’Ç‰ÁzPERFECT‚È‚ç•ñV‚ğ”{‚É‚·‚é
+            float perfectBonus = perfect ? perfectMultiplier : 1f;
+
             // ©“]Ô‚Ì‘ä”‚É‰‚¶‚ÄŒÅ’èŠz‚ğ‰ÁZ
             long moneyBase =
                 config.baseMoneyReward +
@@ -81,20 +92,27 @@ public class GameManager : MonoBehaviour
                 config.baseSubscriberReward +
                 (long)playerData.bicycleCount * config.subscriberBonusPerBicycle;
 
-            // ƒXƒLƒ‹”{—¦‚ğ“K—p
+            // ƒXƒLƒ‹”{—¦‚ÆPERFECT”{—¦‚ğ“K—p
             long moneyReward = Math.Max(
                 1L,
-                (long)(moneyBase * moneyMultiplier)
+                (long)(moneyBase * moneyMultiplier * perfectBonus)
             );
 
             long subscriberReward = Math.Max(
                 1L,
-                (long)(subscriberBase * subscriberMultiplier)
+                (long)(subscriberBase * subscriberMultiplier * perfectBonus)
             );
 
             // ‚¨‹à‚Æ“o˜^Ò‚ğ‰ÁZ
             playerData.money += moneyReward;
             playerData.subscribers += subscriberReward;
+
+            // y’Ç‰Áz“o˜^Ò‚Ìß–Ú‚ğ’´‚¦‚½‚çƒoƒi[‚ğo‚·
+            // iƒQ[ƒ€ƒNƒŠƒA‚ÌãŒÀ•â³‚æ‚è‘O‚ÉŒÄ‚Ôj
+            if (jumpEffects != null)
+            {
+                jumpEffects.CheckMilestone(playerData.subscribers);
+            }
 
             // ¬Œ÷‰‰o‚ğÄ¶
             if (successEffectUI != null)
@@ -109,7 +127,8 @@ public class GameManager : MonoBehaviour
             playerData.day++;
 
             Debug.Log(
-                $"ƒWƒƒƒ“ƒv¬Œ÷I {moneyReward}‰~Šl“¾A" +
+                $"ƒWƒƒƒ“ƒv¬Œ÷I{(perfect ? "yPERFECTz" : "")} " +
+                $"{moneyReward}‰~Šl“¾A" +
                 $"“o˜^Ò +{subscriberReward}lB{playerData.day}“ú–ÚI"
             );
 
