@@ -1322,9 +1322,8 @@ MonoBehaviour:
   subscriberRewardText: {fileID: 1628658287}
   addMoneyRewardText: {fileID: 2127697691}
   addSubscriberRewardText: {fileID: 724231406}
-  flashImage: {fileID: 1583990904}
-  effectDuration: 0.2
-  blinkInterval: 0.06
+  potatoDance: {fileID: 949725223}
+  effectDuration: 1.41
   popScale: 1.2
 --- !u!1 &330585543
 GameObject:
@@ -4564,6 +4563,61 @@ MonoBehaviour:
   blackScreenImage: {fileID: 1887446651}
   fadeToBlackDuration: 0.5
   fadeFromBlackDuration: 0.5
+--- !u!1 &949725221
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 949725222}
+  - component: {fileID: 949725223}
+  m_Layer: 0
+  m_Name: PotatoDanceEffect
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &949725222
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949725221}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1394077966}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 505, y: -232}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &949725223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949725221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a05dc3fc2fbc7a84896fa63f86e773c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PotatoDanceEffect
+  container: {fileID: 949725222}
+  potatoSprite: {fileID: 21300000, guid: 52744b73952ea1f4da44744f3ba2f628, type: 3}
+  potatoSize: {x: 160, y: 220}
+  count: 3
+  margin: {x: 120, y: 140}
+  scaleRange: {x: 0.7, y: 1.1}
+  popTime: 0.25
 --- !u!1 &955522060
 GameObject:
   m_ObjectHideFlags: 0
@@ -6615,13 +6669,14 @@ RectTransform:
   - {fileID: 417342988}
   - {fileID: 1636589047}
   - {fileID: 2023972896}
-  - {fileID: 130353868}
   - {fileID: 293968354}
   - {fileID: 910886579}
   - {fileID: 617735049}
   - {fileID: 1887446650}
+  - {fileID: 130353868}
   - {fileID: 393536842}
   - {fileID: 88383110}
+  - {fileID: 949725222}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -8126,7 +8181,8 @@ MonoBehaviour:
   failShakeAmount: 0.25
   perfectText: {fileID: 1588736166}
   perfectTextDuration: 1.6
-  colorInterval: 0.1
+  perfectFadeTime: 0.25
+  perfectColor: {r: 1, g: 1, b: 1, a: 1}
   flashColors:
   - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   - {r: 1, g: 0, b: 1, a: 1}

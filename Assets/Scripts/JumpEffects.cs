@@ -13,7 +13,7 @@ public class JumpEffects : MonoBehaviour
     [SerializeField] private ParticleSystem confetti;     // 紙吹雪（Simulation Space = World）
     [SerializeField] private ParticleSystem dust;         // 着地のホコリ（Simulation Space = World）
     [SerializeField] private int confettiCount = 40;
-    [SerializeField] private int perfectConfettiCount = 90;
+    [SerializeField] private int perfectConfettiCount = 50;   // 90 → 50
     [SerializeField] private int dustCount = 14;
 
     [Header("画面揺れ（失敗時）")]
@@ -22,8 +22,10 @@ public class JumpEffects : MonoBehaviour
 
     [Header("PERFECT文字")]
     [SerializeField] private TMP_Text perfectText;
-    [SerializeField] private float perfectTextDuration = 1.6f;
-    [SerializeField] private float colorInterval = 0.1f;
+    [SerializeField] private float perfectTextDuration = 1.0f;
+    [SerializeField] private float perfectFadeTime = 0.25f;
+    [SerializeField] private Color perfectColor = Color.white;
+
     [SerializeField]
     private Color[] flashColors =
         { Color.yellow, Color.magenta, Color.white, Color.cyan };
@@ -174,22 +176,34 @@ public class JumpEffects : MonoBehaviour
     private IEnumerator PerfectRoutine()
     {
         perfectText.gameObject.SetActive(true);
+        perfectText.color = new Color(perfectColor.r, perfectColor.g, perfectColor.b, 0f);
 
-        float t = 0f;
-        int i = 0;
-        while (t < perfectTextDuration)
-        {
-            if (flashColors != null && flashColors.Length > 0)
-                perfectText.color = flashColors[i % flashColors.Length];
-            i++;
-            yield return new WaitForSecondsRealtime(colorInterval);
-            t += colorInterval;
-        }
+        // ふわっと表示
+        yield return FadePerfect(0f, 1f);
+
+        // しばらく表示(色は変えない)
+        float hold = Mathf.Max(0f, perfectTextDuration - perfectFadeTime * 2f);
+        yield return new WaitForSecondsRealtime(hold);
+
+        // すっと消える
+        yield return FadePerfect(1f, 0f);
 
         perfectText.gameObject.SetActive(false);
         perfectRoutine = null;
     }
 
+    private IEnumerator FadePerfect(float from, float to)
+    {
+        float t = 0f;
+        while (t < perfectFadeTime)
+        {
+            t += Time.unscaledDeltaTime;
+            float a = Mathf.Lerp(from, to, Mathf.Clamp01(t / perfectFadeTime));
+            perfectText.color = new Color(perfectColor.r, perfectColor.g, perfectColor.b, a);
+            yield return null;
+        }
+        perfectText.color = new Color(perfectColor.r, perfectColor.g, perfectColor.b, to);
+    }
     private IEnumerator BannerRoutine()
     {
         while (bannerQueue.Count > 0)
