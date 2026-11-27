@@ -29,8 +29,21 @@ public class BicycleManager : MonoBehaviour
     [Tooltip("PERFECTの中心から左右に何mまでをPERFECTにするか")]
     public float perfectRadius = 0.8f;
 
-    [Tooltip("PERFECTの位置を示すマーカー（任意。地面の上に置く）")]
+    [Header("PERFECTマーカー（ワールド上のスプライト）")]
+
+    [Tooltip("マーカー全体の親。見た目の中心がPERFECTの位置に合うように動く（任意）")]
     public Transform perfectMarker;
+
+    [Tooltip("判定の幅に合わせて伸縮させる画像（赤丸など）。perfectMarkerの子にする（任意）")]
+    public SpriteRenderer markerSprite;
+
+    [Tooltip("マーカーが目標位置へ移動する速さ。0なら瞬間移動")]
+    public float markerMoveSpeed = 8f;
+
+    [Header("デバッグ")]
+
+    [Tooltip("判定範囲（黄色い枠）を常にSceneビュー・Gameビューに表示する")]
+    public bool showPerfectGizmo = true;
 
     // 生成済みの自転車を管理するリスト
     private readonly List<GameObject> bicycles =
@@ -121,6 +134,14 @@ public class BicycleManager : MonoBehaviour
             return;
         }
 
+        if (perfectMarker == null)
+        {
+            Debug.LogWarning(
+                "Perfect Marker が未設定です。マーカーは動きません。",
+                this
+            );
+        }
+
         // 設定された初期台数分の自転車を生成する
         for (int i = 0; i < config.initialBicycles; i++)
         {
@@ -132,6 +153,23 @@ public class BicycleManager : MonoBehaviour
 
         // 初期配置後に必要な更新処理を実行する
         UpdateBicycles();
+
+        // 最初だけは、滑らかに動かさず正しい位置へ置く
+        SnapMarker();
+    }
+
+    /// <summary>
+    /// マーカーを目標位置へ滑らかに近づける。
+    /// </summary>
+    private void Update()
+    {
+        if (perfectMarker == null || markerMoveSpeed <= 0f)
+            return;
+
+        Vector3 p = perfectMarker.position;
+        float t = 1f - Mathf.Exp(-markerMoveSpeed * Time.deltaTime);
+        p.x = Mathf.Lerp(p.x, GetMarkerTargetX(), t);
+        perfectMarker.position = p;
     }
 
     /// <summary>
@@ -215,16 +253,105 @@ public class BicycleManager : MonoBehaviour
 
     /// <summary>
     /// 自転車の追加後に必要な更新処理を行う。
-    /// 現在はPERFECTマーカーを、最後の自転車の先へ動かす。
+    /// マーカーの幅を判定幅に合わせ、位置を更新する。
     /// 配置済みの自転車は移動させない。
     /// </summary>
     public void UpdateBicycles()
     {
-        if (perfectMarker != null)
-        {
-            Vector3 p = perfectMarker.position;
-            p.x = PerfectX;
-            perfectMarker.position = p;
-        }
+        // 幅を先に合わせてから、位置を決める（幅で見た目の中心が変わるため）
+        FitMarkerWidth();
+
+        // 速度が0なら瞬間移動。それ以外はUpdateで滑らかに動く
+        if (markerMoveSpeed <= 0f)
+            SnapMarker();
+    }
+
+    /// <summary>
+    /// マーカーを目標位置へ、すぐに移動させる。
+    /// </summary>
+    private void SnapMarker()
+    {
+        if (perfectMarker == null)
+            return;
+
+        Vector3 p = perfectMarker.position;
+        p.x = GetMarkerTargetX();
+        perfectMarker.position = p;
+    }
+
+    /// <summary>
+    /// マーカー画像の見た目の中心が PerfectX に来るような、
+    /// 親（perfectMarker）のX座標を返す。
+    /// 子の画像にオフセットがあっても、画像のPivotが中央でなくても、
+    /// 見た目の中心がPERFECTの判定の中心と一致する。
+    /// </summary>
+    private float GetMarkerTargetX()
+    {
+        if (perfectMarker == null)
+            return PerfectX;
+
+        if (markerSprite == null)
+            return PerfectX;
+
+        // 親の位置から見た、画像の見た目の中心のずれ
+        float offset =
+            markerSprite.bounds.center.x - perfectMarker.position.x;
+
+        return PerfectX - offset;
+    }
+
+    /// <summary>
+    /// マーカー画像の横幅を、PERFECTの判定幅（perfectRadius × 2）に合わせる。
+    /// 見た目と判定がずれないようにするための処理。
+    /// </summary>
+    private void FitMarkerWidth()
+    {
+        if (markerSprite == null || markerSprite.sprite == null)
+            return;
+
+        // 画像そのもののワールド上の幅（スケール1のとき）
+        float spriteWidth = markerSprite.sprite.bounds.size.x;
+        if (spriteWidth <= 0f)
+            return;
+
+        // 親のスケールも考慮して、見た目の幅を判定幅に合わせる
+        Transform t = markerSprite.transform;
+        float parentScaleX =
+            t.parent != null ? t.parent.lossyScale.x : 1f;
+        if (Mathf.Approximately(parentScaleX, 0f))
+            parentScaleX = 1f;
+
+        Vector3 s = t.localScale;
+        s.x = perfectRadius * 2f / spriteWidth / parentScaleX;
+        t.localScale = s;
+    }
+
+    /// <summary>
+    /// PERFECTの判定範囲を、黄色い枠と中心線で常に表示する。
+    /// Gameビューでは、右上の「Gizmos」ボタンをオンにすると見える。
+    /// </summary>
+    private void OnDrawGizmos()
+    {
+        if (!showPerfectGizmo)
+            return;
+
+        float x = Application.isPlaying
+            ? PerfectX
+            : (perfectMarker != null ? perfectMarker.position.x : 0f);
+        float y = perfectMarker != null ? perfectMarker.position.y : 0f;
+
+        Gizmos.color = Color.yellow;
+
+        // 判定の中心線
+        Gizmos.DrawLine(
+            new Vector3(x, y - 1f, 0f),
+            new Vector3(x, y + 4f, 0f)
+        );
+
+        // 判定範囲（左右perfectRadiusまで）
+        Gizmos.DrawWireCube(
+            new Vector3(x, y + 1.5f, 0f),
+            new Vector3(perfectRadius * 2f, 3f, 0.1f)
+        );
     }
 }
